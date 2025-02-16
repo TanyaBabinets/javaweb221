@@ -11,7 +11,7 @@ public class RestResponse {
 
     private String resourceUrl;///   
     private Map<String, String>meta;
-   // private long cacheTime;//seconds
+    private long cacheTime;//seconds
     private Object data;
 
     public Object getData() {
@@ -41,14 +41,14 @@ public class RestResponse {
          return this;
     }
 
-//    public long getCacheTime() {
-//        return cacheTime;
-//    }
+    public long getCacheTime() {
+        return cacheTime;
+    }
 
-//    public RestResponse setCacheTime(long cacheTime) {
-//        this.cacheTime = cacheTime;
-//         return this;
-//    }
+    public RestResponse setCacheTime(long cacheTime) {
+        this.cacheTime = cacheTime;
+         return this;
+    }
 
     public int getStatus() {
         return status;

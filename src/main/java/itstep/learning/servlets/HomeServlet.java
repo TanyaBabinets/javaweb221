@@ -1,16 +1,22 @@
-
- 
 package itstep.learning.servlets;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mysql.cj.jdbc.MysqlDataSource;
+import itstep.learning.dal.dao.DataContext;
+import itstep.learning.dal.dto.User;
 import itstep.learning.models.UserSignUpFormModel;
 import itstep.learning.rest.RestResponse;
-import itstep.learning.servicerandom.DateTimeService;
-import itstep.learning.servicerandom.RandomService;
-import itstep.learning.servicerandom.UtilRandomService;
+import itstep.learning.services.db.DbService;
+import itstep.learning.services.db.RestService;
+import itstep.learning.services.random.DateTimeService;
+import itstep.learning.services.random.RandomService;
+import itstep.learning.services.random.UtilRandomService;
+import itstep.learning.services.kdf.KdfService;
+import itstep.learning.services.hash.HashService;
+import itstep.learning.services.hash.MD5HashService;
+import itstep.learning.services.random.SeedRandomService;
 import jakarta.jms.Connection;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -31,51 +37,56 @@ import java.util.logging.Logger;
 
 @Singleton
 public class HomeServlet extends HttpServlet {
-private final RandomService randomService;
-private final DateTimeService datetimeservice;
+//private final Gson gson=new Gson();
+    private final RandomService randomService;
+     private final SeedRandomService seedrandomService;
+    private final DateTimeService datetimeservice;
+    private final KdfService kdfService;
+       private final DbService dbService;
+       private final DataContext datacontext;
+       private final RestService restService;
 
-@Inject
-    public HomeServlet(RandomService randomService, DateTimeService datetimeService) {
+    @Inject
+    public HomeServlet(RandomService randomService, SeedRandomService seedrandomService, DateTimeService datetimeService, KdfService kdfService, DbService dbService, itstep.learning.dal.dao.DataContext datacontext, itstep.learning.services.db.RestService restService) {
         this.randomService = randomService;
-        this.datetimeservice=datetimeService;
+         this.seedrandomService = seedrandomService;
+        this.datetimeservice = datetimeService;
+        this.kdfService = kdfService;
+        this.dbService=dbService;
+        this.datacontext = datacontext;
+    this.restService = restService;
     }
-    
-    
-    private final Gson gson=new Gson();
 
-    
+   
+
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String mes="OK";
+        
         String message;
-        
+        int randomNumber;
+        String timestamp;
+
         try {
-            DriverManager.registerDriver(
-                    new com.mysql.cj.jdbc.Driver()
-            );   
-            String connectionString="jdbc:mysql://localhost:3306/java221";
-            java.sql.Connection connection=DriverManager.getConnection( connectionString, "user221", "pass221" );
-        
-//1            String sql="SELECT CURRENT_TIMESTAMP";
-            String sql="SHOW DATABASES";
-            Statement statement=connection.createStatement();
-            ResultSet resultSet=statement.executeQuery( sql );
-            List<String> databases = new ArrayList<>();
-            while(resultSet.next()){
-            databases.add(resultSet.getString(1));
-            }
-            message=String.join(", ", databases);
+
+            timestamp=datetimeservice.getTimestamp();
+            randomNumber=seedrandomService.randomInt();
+           String sql="SELECT CURRENT_TIMESTAMP";
+  //          String sql = "SHOW DATABASES";
+            Statement statement = dbService.getConnection().createStatement();
+            ResultSet resultSet = statement.executeQuery(sql);
+            message="OK";
 // 2           resultSet.next();
 // 3           message= resultSet.getString(1);///JDBC count from 1
-            ///
+         ///
             
-            
-           
+                 
         } catch (SQLException ex) {
-            message=ex.getMessage();
+            message = ex.getMessage();
+            randomNumber=-1;
+            timestamp="errorTimestamp";
         }
-        
+
 //        try{
 //        MysqlDataSource mds = new MysqlDataSource();
 //        mds.setURL("jdbc:mysql://localhost:3306/java221");
@@ -83,71 +94,92 @@ private final DateTimeService datetimeservice;
 //        } catch (SQLException ex) {
 //           message=ex.getMessage();
 //        }
+       // String timestamp = datetimeservice.getTimestamp();
+//int randomNumber=seedrandomService.randomInt();
+String msg=datacontext.getUserDao().installTables()
+        ?"Install OK"
+        :"Install FAIL";
         
-
-String timestamp=datetimeservice.getTimestamp();
-
-        resp.setContentType("application/json");
-        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:5174");
-        resp.getWriter().print(gson.toJson
-        (new RestResponse().setStatus(200).setMessage(message+randomService.randomInt()+"  TIME: "+timestamp)));
-       
-    }
-
+restService.sendResponse(resp,
+        new RestResponse()
+                .setStatus(200)
+                .setMessage(message="" + " "+msg)
+        .setData(Map.of(
+        "random Number: ", randomNumber, "timestamp: ", timestamp
+        ))
+//         .setMessage(message=""+randomService.randomInt()+" "+msg)
+        );
+}
+//        resp.setContentType("application/json");
+//        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+//        resp.getWriter().print(gson.toJson(new RestResponse().setStatus(200).setMessage(message +" "+ msg + randomService.randomInt() + " " +"  HASH: "+ kdfService.dk("123", "456") + "  TIME: " + timestamp+ "  RANDOM NUMBER: " + randomNumber)));
+//}
     
-   
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String body = new String(req.getInputStream().readAllBytes());
 //        UserSignUpFormModel model= gson.fromJson(body, UserSignUpFormModel.class);
         UserSignUpFormModel model;
-        RestResponse restResponse=
-                new RestResponse()
-                .setResourceUrl("POST /home");
+        RestResponse restResponse
+                = new RestResponse()
+                        .setResourceUrl("POST /home")
+                  .setMeta(Map.of(
+                        "dataType", "object",
+                        "read", "GET /home",
+                        "update", "PUT /home",
+                        "delete", "DELETE /home"));
 //                .setCacheTime(0);
-        
-        
-        try{
-        model=gson.fromJson(body, UserSignUpFormModel.class);
+
+        try {
+            model = restService.fromJson(body, UserSignUpFormModel.class);
+        } catch (Exception ex) {
+            restService.sendResponse(resp, restResponse
+                     .setStatus(422)
+                    .setMessage(ex.getMessage())
+            );
+            return;
         }
-        catch(Exception ex){
-        sendJson(resp, restResponse.setStatus(422)
-        .setMessage(ex.getMessage())
-        );
-        return;
-        }
+
         
-        sendJson(resp, new RestResponse()
-        .setResourceUrl("POST /home")
-        .setStatus(201)
-        .setMessage("Created")
-      //  .setCacheTime(0)
-        .setMeta(Map.of(
-        "dataTyoe", "object",
-                "read", "GET /home",
-                "update", "PUT /home",
-                "delete", "DELETE /home"
-        ))
-                .setData(model)
-        );
-//        sendJson(resp, 201,body);
+        User user= datacontext.getUserDao().addUser(model);
+        if (user==null){
+        restResponse
+.setStatus(507)
+.setMessage("DB Error")
+.setData(model);
+//        sendJson(resp, new RestResponse()
+restService.sendResponse(resp,restResponse);
+//                .setResourceUrl("POST /home")
+//                .setStatus(507)
+//                .setMessage("Created")
+                //  .setCacheTime(0)
+              
+                
+        }else{
+                restResponse
+                .setStatus(201)
+                .setMessage("Created")
+                .setData(model);           
+             restService.sendResponse(resp, restResponse);
+//                sendJson(resp, restResponse);
+                
+    }
     }
     
-    
-    
-private void sendJson(HttpServletResponse resp, RestResponse restResponse) throws IOException{
-  resp.setContentType("application/json");
-        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:5174");
-        resp.getWriter().print(gson.toJson(restResponse));
-//        (gson.toJson(new RestResponse().setStatus(status).setMessage(message)));
-}
 
+//    private void sendJson(HttpServletResponse resp, RestResponse restResponse) throws IOException {
+//        resp.setContentType("application/json");
+//        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+//        resp.getWriter().print(gson.toJson(restResponse));
+////        (gson.toJson(new RestResponse().setStatus(status).setMessage(message)));
+//    }
 
     @Override
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-         resp.setHeader("Access-Control-Allow-Origin", "http://localhost:5174");
-          resp.setHeader("Access-Control-Allow-Headers", "content-type");
+       restService.setCorsHeaders(resp);
     }
+    
 }
 
 //IoC Inversion of Control - Інверсія управліня - Архітектурний патер, 

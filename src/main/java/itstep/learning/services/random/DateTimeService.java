@@ -1,5 +1,5 @@
 
-package itstep.learning.servicerandom;
+package itstep.learning.services.random;
 
 import java.time.Instant;
 import java.time.ZoneId;
