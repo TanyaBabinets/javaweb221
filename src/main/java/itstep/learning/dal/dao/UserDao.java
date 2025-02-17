@@ -31,6 +31,7 @@ public class UserDao {
      this.logger = logger;
      this.kdfService = kdfService;
      this.dbService = dbService;
+     fillRoles();
     }
    
     
@@ -108,7 +109,7 @@ logger.log(Level.WARNING, "UserDao:Authorize {0}", ex.getMessage());
     
     public boolean installTables() {
 
-return installUserAccess()&&installUsers();
+return installUserAccess()&&installUsers()&&installUserRoles();
     }
     
     
@@ -154,6 +155,50 @@ catch (SQLException ex){
 logger.warning("UserDao:installUserAccess "+ ex.getMessage());
 }
 return false;
+    }
     
+      private boolean installUserRoles(){
+
+   String sql = "CREATE TABLE IF NOT EXISTS user_roles("
+        + "id VARCHAR(32) PRIMARY KEY,"         
+        + "description VARCHAR(256),"
+        + "canCreate BOOLEAN DEFAULT FALSE,"
+          + "canRead BOOLEAN DEFAULT FALSE,"
+                  + "canUpdate BOOLEAN DEFAULT FALSE,"
+            + "canDelete BOOLEAN DEFAULT FALSE"
+         
+        + ") Engine=InnoDB, DEFAULT CHARSET=utf8mb4";
+
+
+   
+try(Statement statement=connection.createStatement()){
+statement.executeUpdate(sql);
+logger.info("UserRolesInstall OK");
+return true;
+}
+catch (SQLException ex){
+logger.warning("UserDao:installUsersRoles "+ ex.getMessage());
+}
+return false;
+    }
+    public boolean defaultUserRoles() {
+    String sql = "INSERT IGNORE INTO user_roles (id, description, canCreate, canRead, canUpdate, canDelete) VALUES "
+        + "('admin', 'Admin', TRUE, TRUE, TRUE, TRUE),"
+        + "('guest', 'Guest', FALSE, TRUE, FALSE, FALSE)";
+
+    try (Statement statement = connection.createStatement()) {
+        statement.executeUpdate(sql);
+        logger.info("Default roles added");
+        return true;
+    } catch (SQLException ex) {
+        logger.warning("UserDao:addDefaultUserRoles " + ex.getMessage());
+    }
+    return false;
+}
+     public void fillRoles() {
+        if (installTables()) {
+            defaultUserRoles();
+        }
     }
 }
+
