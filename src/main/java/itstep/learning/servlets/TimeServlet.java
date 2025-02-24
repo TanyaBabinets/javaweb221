@@ -4,7 +4,8 @@ package itstep.learning.servlets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import itstep.learning.rest.TimeResponse;
-import itstep.learning.services.random.SeedRandomService;
+import itstep.learning.services.random.UtilRandomService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -21,7 +22,7 @@ public class TimeServlet extends HttpServlet{
 
      
      @Inject 
-     private SeedRandomService seedRS;
+     private UtilRandomService seedRS;
      
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) 

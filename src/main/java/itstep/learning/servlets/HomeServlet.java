@@ -16,7 +16,7 @@ import itstep.learning.services.random.UtilRandomService;
 import itstep.learning.services.kdf.KdfService;
 import itstep.learning.services.hash.HashService;
 import itstep.learning.services.hash.MD5HashService;
-import itstep.learning.services.random.SeedRandomService;
+
 import jakarta.jms.Connection;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,7 +40,7 @@ import java.util.logging.Logger;
 public class HomeServlet extends HttpServlet {
 //private final Gson gson=new Gson();
     private final RandomService randomService;
-     private final SeedRandomService seedrandomService;
+     private final UtilRandomService seedrandomService;
     private final DateTimeService datetimeservice;
     private final KdfService kdfService;
        private final DbService dbService;
@@ -47,7 +48,7 @@ public class HomeServlet extends HttpServlet {
        private final RestService restService;
 
     @Inject
-    public HomeServlet(RandomService randomService, SeedRandomService seedrandomService, DateTimeService datetimeService, KdfService kdfService, DbService dbService, itstep.learning.dal.dao.DataContext datacontext, itstep.learning.services.db.RestService restService) {
+    public HomeServlet(RandomService randomService, UtilRandomService seedrandomService, DateTimeService datetimeService, KdfService kdfService, DbService dbService, itstep.learning.dal.dao.DataContext datacontext, itstep.learning.services.db.RestService restService) {
         this.randomService = randomService;
          this.seedrandomService = seedrandomService;
         this.datetimeservice = datetimeService;
@@ -105,7 +106,9 @@ restService.sendResponse(resp,
                 .setStatus(200)
                 .setMessage(message="" + " "+msg)
         .setData(Map.of(
-        "random Number: ", randomNumber, "timestamp: ", timestamp
+        "random Number: ", randomNumber, "timestamp: ", timestamp, 
+                "Random String: ", randomService.randomStr(10),
+                "Random File name: ", randomService.randomFile(6)
         ))
 //         .setMessage(message=""+randomService.randomInt()+" "+msg)
         );
@@ -118,9 +121,11 @@ restService.sendResponse(resp,
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String body = new String(req.getInputStream().readAllBytes());
-//        UserSignUpFormModel model= gson.fromJson(body, UserSignUpFormModel.class);
-        UserSignUpFormModel model;
+//        String body = new String(req.getInputStream().readAllBytes(),
+//        StandardCharsets.UTF_8
+//        );
+////        UserSignUpFormModel model= gson.fromJson(body, UserSignUpFormModel.class);
+//        UserSignUpFormModel model;
         RestResponse restResponse
                 = new RestResponse()
                         .setResourceUrl("POST /home")
@@ -130,9 +135,9 @@ restService.sendResponse(resp,
                         "update", "PUT /home",
                         "delete", "DELETE /home"));
 //                .setCacheTime(0);
-
+UserSignUpFormModel model;
         try {
-            model = restService.fromJson(body, UserSignUpFormModel.class);
+            model = restService.fromBody(req, UserSignUpFormModel.class);
         } catch (Exception ex) {
             restService.sendResponse(resp, restResponse
                      .setStatus(422)

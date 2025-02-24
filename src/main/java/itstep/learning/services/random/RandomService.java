@@ -7,5 +7,7 @@ package itstep.learning.services.random;
  */
 public interface RandomService {
     int randomInt();
+    String randomStr(int length);
+    String randomFile(int length);
 }
 

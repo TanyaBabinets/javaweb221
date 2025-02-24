@@ -13,6 +13,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -34,23 +36,116 @@ public class UserDao {
      fillRoles();
     }
    
+//    public boolean update(User user){
+//        Map<String, Object> data=new HashMap<>();
+//        if (user.getName()!=null){
+//        data.put("name", user.getName());
+//        }
+//         if (user.getPhone()!=null){
+//        data.put("phone", user.getPhone());
+//        }
+//        
+//         if(data.isEmpty()) return true;
+//         //TODO:convert to StringBuilder
+//        String sql="UPDATE users SET ";
+//        boolean isFirst=true;
+//        for(Map.Entry<String, Object> entry:data.entrySet()){
+//              if (isFirst) isFirst=false;
+//        else sql+=", ";
+//        sql+=entry.getKey();
+//      
+//        }
+//        sql+=" WHERE user_id = ?";
+        
+//    try
+//    (PreparedStatement prep=dbService.getConnection().prepareStatement(sql)){
+//        int param=1;
+//     for(Map.Entry<String, Object> entry:data.entrySet()){
+//             prep.setObject(param, entry.getValue());
+//             param+=1;
+//     }
+//     prep.setString(param, user.getUserId().toString());
+//     prep.execute();
+//     return true;
+//    }
+//    catch( Exception ex ) {
+//            logger.log( 
+//                    Level.WARNING, 
+//                    "UserDao::getUserById Parse error: {0}", 
+//                    id );
+//            return null;
+//        }
+ //   }
+    
+    public User getUserById( String id ) {
+        UUID uuid;
+        try {
+            uuid = UUID.fromString( id );
+        }
+        catch( Exception ex ) {
+            logger.log( 
+                    Level.WARNING, 
+                    "UserDao::getUserById Parse error: {0}", 
+                    id );
+            return null;
+        }
+        return getUserById( uuid ) ;
+    }
+    
+
+    public User getUserById( UUID uuid ) {
+        String sql = String.format(
+            "SELECT u.* FROM users u WHERE u.user_id = '%s'",
+            uuid.toString()
+        );
+        try( Statement stmt = dbService.getConnection().createStatement() ) {
+            ResultSet rs = stmt.executeQuery( sql );
+            if( rs.next() ) {
+                return User.fromResultSet( rs );
+            }
+        }               
+        catch( SQLException ex ) {
+            logger.log( 
+                    Level.WARNING, 
+                    "UserDao::getUserById {0}, {1}",
+                    new Object[] { ex.getMessage(), sql } );
+        }
+        return null;
+    }
+
+
+            
+    
     
     
     public User addUser(UserSignUpFormModel userModel){
         User user=new User();
    user.setUserId(UUID.randomUUID());
    user.setName(userModel.getName());
+    user.setLogin(userModel.getLogin());
    user.setEmail(userModel.getEmail());
+    user.setPhone(userModel.getPhone());
+     user.setRegdate(userModel.getRegdate());
+      user.setCity(userModel.getCity());
                            
-        String sql="INSERT INTO users (user_id, name, email, phone, reg_date, city)"
-                +" VALUES(?,?,?,?,?,?)";
+        String sql="INSERT INTO users (user_id, name, login, email, phone, reg_date, city)"
+                +" VALUES(?,?,?,?,?,?,?)";
         try(PreparedStatement prep=this.connection.prepareStatement(sql)){
             prep.setString(1, user.getUserId().toString());
              prep.setString(2, user.getName());
-              prep.setString(3, user.getEmail());
-               prep.setString(4, user.getPhone());  
-                  prep.setTimestamp(5, new java.sql.Timestamp(user.getRegdate().getTime()));
-                prep.setString(6, user.getCity());
+             prep.setString(3, user.getLogin());
+              prep.setString(4, user.getEmail());
+               prep.setString(5, user.getPhone());
+               
+            if (user.getRegdate() != null) {
+        java.sql.Date sqlDate = new java.sql.Date(user.getRegdate().getTime());
+        prep.setDate(6, sqlDate);
+    } else {
+        prep.setDate(6, null); // Если дата не указана
+    }           
+              //   prep.setTimestamp(5, new java.sql.Timestamp(user.getRegdate().getTime()));
+             
+                prep.setString(7, user.getCity());
             this.connection.setAutoCommit(false);
         prep.executeUpdate();
       // dbService

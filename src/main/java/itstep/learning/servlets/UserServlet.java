@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import itstep.learning.dal.dao.DataContext;
 import itstep.learning.dal.dto.User;
+import itstep.learning.models.UserSignUpFormModel;
 import itstep.learning.rest.RestResponse;
 import itstep.learning.services.db.RestService;
 import jakarta.servlet.ServletException;
@@ -85,7 +86,55 @@ if (user==null){
         restResponse.setStatus( 200 ).setData(user);
         restService.sendResponse( resp, restResponse );
     }
-   
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        RestResponse restResponse =  
+                new RestResponse()
+                .setResourceUrl( "PUT /user" )
+                .setMeta( Map.of(
+                        "dataType", "object",
+                        "read", "GET /user",
+                        "update", "PUT /user",
+                        "delete", "DELETE /user"
+                ) );
+        User userUpdates;
+        try {
+            userUpdates = restService.fromBody( req, User.class ) ;
+        }
+        catch( IOException ex ) {
+            restService.sendResponse( resp, restResponse
+                    .setStatus( 422 )
+                    .setMessage( ex.getMessage() ) 
+            );
+return;
+        
+        
+                  }
+
+        restResponse.setStatus( 200 ).setData(userUpdates);
+        restService.sendResponse( resp, restResponse );
+        }
+    
+
+   @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        RestResponse restResponse =  
+                new RestResponse()
+                .setResourceUrl( "DELETE /user" )
+                .setMeta( Map.of(
+                        "dataType", "object",
+                        "read", "GET /user",
+                        "update", "PUT /user",
+                        "delete", "DELETE /user"
+                ) );
+        restResponse
+                .setStatus( 202 )
+                .setData( "Coming soon" )
+                .setCacheTime( 0 );
+        restService.sendResponse( resp, restResponse );
+    }
+    
      @Override
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
        restService.setCorsHeaders(resp);

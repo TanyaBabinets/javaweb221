@@ -9,18 +9,29 @@ import java.util.UUID;
 public class User {
       private UUID userId;
       private String name;
+      private String login;
       private String email;
       private String phone;
       private Date regdate;
       private String city;
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
       
       public static User fromResultSet(ResultSet rs) throws SQLException{
       User user=new User();
       user.setUserId(UUID.fromString(rs.getString("user_id")));
       user.setName(rs.getString("name"));
+       user.setLogin(rs.getString("login"));
        user.setEmail(rs.getString("email"));
         user.setPhone(rs.getString("phone"));
-      user.setRegdate(new java.util.Date(rs.getTimestamp("reg_date").getTime()));
+   //   user.setRegdate(new java.util.Date(rs.getTimestamp("reg_date").getTime()));
+      user.setRegdate(rs.getDate("reg_date")); 
             user.setCity(rs.getString("city"));
           return user;
       }

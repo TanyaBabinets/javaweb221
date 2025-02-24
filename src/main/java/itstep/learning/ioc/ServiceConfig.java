@@ -11,7 +11,7 @@ import itstep.learning.services.kdf.PbKdf1Service;
 import itstep.learning.services.hash.HashService;
 import itstep.learning.services.hash.MD5HashService;
 import itstep.learning.services.random.DateTimeService;
-import itstep.learning.services.random.SeedRandomService;
+import itstep.learning.services.random.UtilRandomService;
 
 @Singleton
 public class ServiceConfig extends AbstractModule {
@@ -22,7 +22,7 @@ public class ServiceConfig extends AbstractModule {
          bind(DateTimeService.class).toInstance(new DateTimeService());
         bind (KdfService.class).to(PbKdf1Service.class);
         bind(HashService.class).to(MD5HashService.class);
-      bind(RandomService.class).to(SeedRandomService.class);
+      bind(RandomService.class).to(UtilRandomService.class);
           bind(DbService.class).to(MySqlDbService.class);
         //ця інструкція аналогічна AddSingleton<IRandomService, UtilRandomService>() 
     }

@@ -12,7 +12,9 @@ public class MySqlDbService implements DbService{
 private Connection connection;
     @Override
     public Connection getConnection() throws SQLException {
-        if(connection==null){
+       if (connection==null){
+String connectionString="jdbc:mysql://localhost:3306/java221"
+        +"?useUnicode=true&characterEncouding=UTF-8";
 //          DriverManager.registerDriver(
 //                    new com.mysql.cj.jdbc.Driver()
 //            );
