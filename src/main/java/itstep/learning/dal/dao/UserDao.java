@@ -36,6 +36,8 @@ public class UserDao {
      fillRoles();
     }
    
+   
+    
 //    public boolean update(User user){
 //        Map<String, Object> data=new HashMap<>();
 //        if (user.getName()!=null){
@@ -126,16 +128,19 @@ public class UserDao {
    user.setEmail(userModel.getEmail());
     user.setPhone(userModel.getPhone());
      user.setRegdate(userModel.getRegdate());
+      user.setAge(userModel.getAge());
       user.setCity(userModel.getCity());
                            
-        String sql="INSERT INTO users (user_id, name, login, email, phone, reg_date, city)"
-                +" VALUES(?,?,?,?,?,?,?)";
+        String sql="INSERT INTO users (user_id, name, login, email, phone, reg_date, age, city)"
+                +" VALUES(?,?,?,?,?,?,?, ?)";
         try(PreparedStatement prep=this.connection.prepareStatement(sql)){
             prep.setString(1, user.getUserId().toString());
              prep.setString(2, user.getName());
              prep.setString(3, user.getLogin());
               prep.setString(4, user.getEmail());
                prep.setString(5, user.getPhone());
+             
+               
                
             if (user.getRegdate() != null) {
         java.sql.Date sqlDate = new java.sql.Date(user.getRegdate().getTime());
@@ -144,8 +149,8 @@ public class UserDao {
         prep.setDate(6, null); // Если дата не указана
     }           
               //   prep.setTimestamp(5, new java.sql.Timestamp(user.getRegdate().getTime()));
-             
-                prep.setString(7, user.getCity());
+               prep.setInt(7, user.getAge());
+                prep.setString(8, user.getCity());
             this.connection.setAutoCommit(false);
         prep.executeUpdate();
       // dbService

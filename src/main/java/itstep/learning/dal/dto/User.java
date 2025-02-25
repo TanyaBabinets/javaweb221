@@ -13,10 +13,19 @@ public class User {
       private String email;
       private String phone;
       private Date regdate;
+       private int age;
       private String city;
 
     public String getLogin() {
         return login;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 
     public void setLogin(String login) {
@@ -32,6 +41,7 @@ public class User {
         user.setPhone(rs.getString("phone"));
    //   user.setRegdate(new java.util.Date(rs.getTimestamp("reg_date").getTime()));
       user.setRegdate(rs.getDate("reg_date")); 
+      user.setAge(rs.getInt("age"));
             user.setCity(rs.getString("city"));
           return user;
       }

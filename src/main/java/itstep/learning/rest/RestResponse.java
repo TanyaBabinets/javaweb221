@@ -8,7 +8,15 @@ import java.util.Map;
 public class RestResponse {
     private int status;
     private String message;
+private String resourseUrl;
 
+    public String getResourseUrl() {
+        return resourseUrl;
+    }
+
+    public void setResourseUrl(String resourseUrl) {
+        this.resourseUrl = resourseUrl;
+    }
     private String resourceUrl;///   
     private Map<String, String>meta;
     private long cacheTime;//seconds

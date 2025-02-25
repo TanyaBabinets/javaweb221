@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import itstep.learning.dal.dao.DataContext;
 import itstep.learning.dal.dto.User;
+import itstep.learning.dal.dto.UserAccess;
 import itstep.learning.models.UserSignUpFormModel;
 import itstep.learning.rest.RestResponse;
 import itstep.learning.services.db.RestService;
@@ -98,6 +99,33 @@ if (user==null){
                         "update", "PUT /user",
                         "delete", "DELETE /user"
                 ) );
+        //checking авторизацию по токену
+        String authHeader = req.getHeader( "Authorization" );
+        if( authHeader == null ) {
+            restService.sendResponse( resp, 
+                    restResponse.setStatus( 401 )
+                            .setData( "Authorization header required" ) );
+            return;
+        }
+        String authScheme = "Bearer ";
+        if( ! authHeader.startsWith( authScheme ) ) {
+            restService.sendResponse( resp, 
+                    restResponse.setStatus( 422 )
+                            .setData( "Authorization scheme error" ) );
+            return;
+        }        
+        String credentials = authHeader.substring( authScheme.length() ) ;
+    credentials = new String(Base64.getDecoder().decode(credentials.getBytes()));
+    restResponse.setData(credentials);
+    restService.sendResponse(resp, restResponse);
+        
+//             UserAccess userAccess = datacontext.getAccessTokenDao().getUserAccess( credentials );
+//        if( userAccess == null ) {
+//            restService.sendResponse( resp, 
+//                    restResponse.setStatus( 401 )
+//                            .setData( "Token expires or invalid" ) );
+//            return;
+//        }         
         User userUpdates;
         try {
             userUpdates = restService.fromBody( req, User.class ) ;
@@ -105,13 +133,20 @@ if (user==null){
         catch( IOException ex ) {
             restService.sendResponse( resp, restResponse
                     .setStatus( 422 )
-                    .setMessage( ex.getMessage() ) 
-            );
-return;
-        
-        
+                    .setData("Decode error: "+ex.getMessage()));
+//                    .setMessage( ex.getMessage()+"" ) 
+           // );
+            return;  
                   }
 
+        String[]parts=credentials.split(":", 2);
+        if(parts.length!=2){
+              restService.sendResponse( resp, 
+                      restResponse.setStatus(422)
+              .setData("Format error spliting by ':'"));
+            return;
+            
+        }
         restResponse.setStatus( 200 ).setData(userUpdates);
         restService.sendResponse( resp, restResponse );
         }

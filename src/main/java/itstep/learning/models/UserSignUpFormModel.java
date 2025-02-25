@@ -7,7 +7,23 @@ import java.util.Date;
 public class UserSignUpFormModel {
     private String name;
     private String login;
+private String email;
+     private String phone;
+      private Date regdate;
+       private String password;
+       private int age;
 
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+       private String city;
+       
+       
+       
     public String getPhone() {
         return phone;
     }
@@ -15,11 +31,7 @@ public class UserSignUpFormModel {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-     private String email;
-     private String phone;
-      private Date regdate;
-       private String password;
-       private String city;
+     
 
     public String getName() {
         return name;
