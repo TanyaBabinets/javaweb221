@@ -23,6 +23,7 @@ String connectionString="jdbc:mysql://localhost:3306/java221"
   MysqlDataSource mds = new MysqlDataSource();
        mds.setURL("jdbc:mysql://localhost:3306/java221");
         connection = mds.getConnection( "user221", "pass221" );
+         connection.setAutoCommit(false);
         }
         
         return connection;

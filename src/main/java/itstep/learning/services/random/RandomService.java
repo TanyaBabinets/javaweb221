@@ -9,5 +9,6 @@ public interface RandomService {
     int randomInt();
     String randomStr(int length);
     String randomFile(int length);
+    String generateRandomString(String type, int length);
 }
 

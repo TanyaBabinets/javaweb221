@@ -2,6 +2,7 @@
 package itstep.learning.models;
 
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 public class UserSignUpFormModel {
@@ -12,7 +13,26 @@ private String email;
       private Date regdate;
        private String password;
        private int age;
+        private BigDecimal balance;
+           private Date deleteMoment;
 
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
+    public Date getDeleteMoment() {
+        return deleteMoment;
+    }
+
+    public void setDeleteMoment(Date deleteMoment) {
+        this.deleteMoment = deleteMoment;
+    }
+        
     public int getAge() {
         return age;
     }

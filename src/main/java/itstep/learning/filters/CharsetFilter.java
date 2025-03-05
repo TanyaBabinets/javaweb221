@@ -19,27 +19,25 @@ public class CharsetFilter implements Filter {
     public void init(FilterConfig filterConfig) throws ServletException {
         this.filterConfig=filterConfig;
     }
-    
-    
+//инит - работает, когда создается обьект Фильтр    
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain next) throws IOException, ServletException {
+       //типа Invoke
         req.setCharacterEncoding("UTF-8");
         resp.setCharacterEncoding("UTF-8");
         
         next.doFilter(req, resp);
-    }
-
-   
+    } 
     @Override
     public void destroy() {
        this.filterConfig=null;
-    }
-    
-    
+    }   
 }
 /*
 Фильтры - сервлетные фильтры - 
 то классы, что играют роль middleware
+запросы сначала проходят фильтры, потом распределяются на сервлеты.
+(контроллеры)
 
 
 */

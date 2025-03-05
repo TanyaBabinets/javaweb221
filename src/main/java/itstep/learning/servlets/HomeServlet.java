@@ -98,6 +98,7 @@ public class HomeServlet extends HttpServlet {
        // String timestamp = datetimeservice.getTimestamp();
 //int randomNumber=seedrandomService.randomInt();
 String msg=datacontext.getUserDao().installTables()
+        && datacontext.getAccessTokenDao().installTables()
         ?"Install OK"
         :"Install FAIL";
         

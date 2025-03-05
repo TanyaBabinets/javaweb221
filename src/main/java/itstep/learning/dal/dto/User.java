@@ -1,6 +1,7 @@
 
 package itstep.learning.dal.dto;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -15,7 +16,25 @@ public class User {
       private Date regdate;
        private int age;
       private String city;
+      private BigDecimal balance;
+      private Date deleteMoment;
+      
+    public Date getDeleteMoment() {
+        return deleteMoment;
+    }
 
+    public void setDeleteMoment(Date deleteMoment) {
+        this.deleteMoment = deleteMoment;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+   
     public String getLogin() {
         return login;
     }
@@ -42,7 +61,10 @@ public class User {
    //   user.setRegdate(new java.util.Date(rs.getTimestamp("reg_date").getTime()));
       user.setRegdate(rs.getDate("reg_date")); 
       user.setAge(rs.getInt("age"));
-            user.setCity(rs.getString("city"));
+      user.setBalance(rs.getBigDecimal("balance"));
+      user.setCity(rs.getString("city"));
+      java.sql.Timestamp timestamp=rs.getTimestamp("delete_moment");
+      user.setDeleteMoment(timestamp==null?null:new java.util.Date(timestamp.getTime())); 
           return user;
       }
 

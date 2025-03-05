@@ -4,6 +4,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import itstep.learning.services.db.DbService;
 import itstep.learning.services.db.MySqlDbService;
+import itstep.learning.services.db.config.ConfigService;
+import itstep.learning.services.db.config.JsonConfigService;
 import itstep.learning.services.random.RandomService;
 import itstep.learning.services.random.UtilRandomService;
 import itstep.learning.services.kdf.KdfService;
@@ -18,12 +20,13 @@ public class ServiceConfig extends AbstractModule {
 
     @Override
     protected void configure() {
-    //    bind(RandomService.class).to(UtilRandomService.class);
-         bind(DateTimeService.class).toInstance(new DateTimeService());
-        bind (KdfService.class).to(PbKdf1Service.class);
+        //    bind(RandomService.class).to(UtilRandomService.class);
+        bind(DateTimeService.class).toInstance(new DateTimeService());
+        bind(KdfService.class).to(PbKdf1Service.class);
         bind(HashService.class).to(MD5HashService.class);
-      bind(RandomService.class).to(UtilRandomService.class);
-          bind(DbService.class).to(MySqlDbService.class);
+        bind(RandomService.class).to(UtilRandomService.class);
+        bind(DbService.class).to(MySqlDbService.class);
+        bind(ConfigService.class).to(JsonConfigService.class);
         //ця інструкція аналогічна AddSingleton<IRandomService, UtilRandomService>() 
     }
 

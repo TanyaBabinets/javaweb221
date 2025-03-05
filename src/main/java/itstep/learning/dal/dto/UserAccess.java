@@ -1,16 +1,28 @@
 
 package itstep.learning.dal.dto;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.UUID;
 
 
 public class UserAccess {
     private UUID userAccessId;
-     private String userId;
+     private UUID userId;
     private String login;
     private String salt;
     private String dk;
     private String roleId;
+    private Date deleteMoment;
+
+    public Date getDeleteMoment() {
+        return deleteMoment;
+    }
+
+    public void setDeleteMoment(Date deleteMoment) {
+        this.deleteMoment = deleteMoment;
+    }
 
     public UUID getUserAccessId() {
         return userAccessId;
@@ -20,13 +32,15 @@ public class UserAccess {
         this.userAccessId = userAccessId;
     }
 
-    public String getUserId() {
+    public UUID getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
+
+  
 
     public String getLogin() {
         return login;
@@ -60,5 +74,18 @@ public class UserAccess {
         this.roleId = roleId;
     }
     
-    
+ 
+    public static UserAccess fromResultSet( ResultSet rs) throws SQLException{
+        UserAccess ua = new UserAccess();
+        ua.setUserAccessId( UUID.fromString( rs.getString( "user_access_id" ) ) );
+        ua.setUserId( UUID.fromString( rs.getString( "user_id" ) ) );
+        ua.setLogin( rs.getString( "login" ) );
+        ua.setSalt( rs.getString( "salt" ) );
+        ua.setDk( rs.getString( "dk" ) );
+        ua.setRoleId(rs.getString( "role_id" ) );
+        java.sql.Timestamp timestamp = rs.getTimestamp( "ua_delete_dt" ) ;
+        ua.setDeleteMoment( 
+                timestamp == null ? null : new Date( timestamp.getTime() ) ) ;
+        return ua;
+    }
 }
