@@ -1,5 +1,5 @@
 
-package itstep.learning.services.db.config;
+package itstep.learning.services.config;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -21,7 +21,8 @@ public class JsonConfigService implements ConfigService {
     
     @Inject
     public JsonConfigService( Logger logger ) {
-        this.logger = logger;        
+        this.logger = logger; 
+         init();
     }
     
     @Override
@@ -59,5 +60,27 @@ public class JsonConfigService implements ConfigService {
             logger.log( Level.SEVERE, "JsonConfigService::init", ex );
         }
     }
+
+    @Override
+    public String get(String storagePath) {
+   //     JsonPrimitive value = getValue(storagePath);
+  //  return value != null ? value.getAsString() : null;
+    JsonPrimitive value = null;
+    try {
+        value = getValue(storagePath);
+    } catch (Exception e) {
+        logger.log(Level.WARNING, "Path is not found in JSON", e);
+    }
+    if (value != null) {
+        return value.getAsString();
+    }
+
+    if ("storage.path".equals(storagePath)) {
+        return "D:/storage/java211/";
+    }
+
+    return null;
+}
     
 }
+

@@ -5,8 +5,8 @@ import com.google.inject.servlet.ServletModule;
 import itstep.learning.filters.*;
 import itstep.learning.servlets.HomeServlet;
 import itstep.learning.servlets.RandomServlet;
-//import itstep.learning.servlets.ProductServlet;
-//import itstep.learning.servlets.StorageServlet;
+import itstep.learning.servlets.ProductServlet;
+import itstep.learning.servlets.StorageServlet;
 import itstep.learning.servlets.TimeServlet;
 import itstep.learning.servlets.UserServlet;
 
@@ -26,8 +26,8 @@ public class ServletConfig extends ServletModule{
          serve("/user").with(UserServlet.class);
          serve("/time").with(TimeServlet.class);
            serve("/random").with(RandomServlet.class);
-//         serve("/product").with(ProductServlet.class);
-         //serve("/storage/*").with(StorageServlet.class);
+         serve("/product").with(ProductServlet.class);
+         serve("/storage/*").with(StorageServlet.class);
     }
     
     

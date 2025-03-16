@@ -4,16 +4,21 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import itstep.learning.services.db.DbService;
 import itstep.learning.services.db.MySqlDbService;
-import itstep.learning.services.db.config.ConfigService;
-import itstep.learning.services.db.config.JsonConfigService;
+import itstep.learning.services.config.ConfigService;
+import itstep.learning.services.config.JsonConfigService;
+
+
 import itstep.learning.services.random.RandomService;
-import itstep.learning.services.random.UtilRandomService;
 import itstep.learning.services.kdf.KdfService;
 import itstep.learning.services.kdf.PbKdf1Service;
 import itstep.learning.services.hash.HashService;
 import itstep.learning.services.hash.MD5HashService;
+import itstep.learning.services.hash.storage.DiskStorageService;
+import itstep.learning.services.hash.storage.StorageService;
 import itstep.learning.services.random.DateTimeService;
 import itstep.learning.services.random.UtilRandomService;
+import itstep.learning.services.form_parse.FormParseService;
+import itstep.learning.services.form_parse.MixedFormParseService;
 
 @Singleton
 public class ServiceConfig extends AbstractModule {
@@ -27,6 +32,8 @@ public class ServiceConfig extends AbstractModule {
         bind(RandomService.class).to(UtilRandomService.class);
         bind(DbService.class).to(MySqlDbService.class);
         bind(ConfigService.class).to(JsonConfigService.class);
+        bind( FormParseService.class ).to( MixedFormParseService.class );
+        bind( StorageService.class ).to( DiskStorageService.class );
         //ця інструкція аналогічна AddSingleton<IRandomService, UtilRandomService>() 
     }
 
