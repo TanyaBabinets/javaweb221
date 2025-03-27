@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import itstep.learning.dal.dao.DataContext;
+import itstep.learning.dal.dao.UserDao;
 import itstep.learning.dal.dto.AccessToken;
 import itstep.learning.dal.dto.User;
 import itstep.learning.dal.dto.UserAccess;
@@ -34,14 +35,16 @@ public class UserServlet extends HttpServlet {
     private final Logger logger;
     private final HashService hashService;
 private final ConfigService configService;
+private final UserDao userDao;
 
     @Inject
-    public UserServlet(DataContext datacontext, RestService restService, Logger logger, HashService hashService, ConfigService configService) {
+    public UserServlet(DataContext datacontext, RestService restService, Logger logger, HashService hashService, ConfigService configService, UserDao userDao) {
         this.datacontext = datacontext;
         this.restService = restService;
         this.logger = logger;
         this.hashService = hashService;
         this.configService = configService;
+        this.userDao = userDao;
     }
 
     @Override
@@ -181,6 +184,7 @@ payloadJson.addProperty("exp", expAt);
         }
         
         User userUpdates;
+       
         try {
             userUpdates = restService.fromBody(req, User.class);
         } catch (IOException ex) {
@@ -200,6 +204,17 @@ payloadJson.addProperty("exp", expAt);
             return;
 
         }
+        
+      if (userUpdates.getEmail() != null) {
+    try {
+        userDao.updateLogin(userAccess.getUserId().toString(), userUpdates.getEmail());
+    } catch (Exception ex) {
+        restResponse.setStatus(500)
+                    .setData("Login update error: " + ex.getMessage());
+        restService.sendResponse(resp, restResponse);
+        return;
+    }
+}
         restResponse.setStatus(200).setData(userUpdates);
         restService.sendResponse(resp, restResponse);
     }

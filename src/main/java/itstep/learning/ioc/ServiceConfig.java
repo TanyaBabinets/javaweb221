@@ -35,8 +35,7 @@ public class ServiceConfig extends AbstractModule {
         bind( FormParseService.class ).to( MixedFormParseService.class );
         bind( StorageService.class ).to( DiskStorageService.class );
         bind(ConfigService.class).to(JsonConfigService.class);
-     //   bind(JwtService.class).to(JwtService.class);  как правильнее??????????
-   //    bind(JwtService.class).toInstance(new JwtService(getProvider(ConfigService.class).get()));
+     
         // toInstance создает jwt вручную, а не динамически через inject и получает обьект configservice 
         
         //ця інструкція аналогічна AddSingleton<IRandomService, UtilRandomService>() 

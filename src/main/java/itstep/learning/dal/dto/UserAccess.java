@@ -1,6 +1,7 @@
 
 package itstep.learning.dal.dto;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -92,4 +93,6 @@ public class UserAccess {
     public void put(String iat, long now) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
+    
+
 }

@@ -40,6 +40,10 @@ public class UserDao {
         fillRoles();
     }
 
+    public UserDao() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
     public boolean update(User user) {
         Map<String, Object> data = new HashMap<>();
         if (user.getName() != null) {
@@ -48,7 +52,9 @@ public class UserDao {
         if (user.getPhone() != null) {
             data.put("phone", user.getPhone());
         }
-
+if (user.getEmail()!=null){
+data.put("email", user.getEmail());// добавлено
+}
         if (data.isEmpty()) {
             return true;
         }
@@ -61,7 +67,7 @@ public class UserDao {
             } else {
                 sql += ", ";
             }
-            sql += entry.getKey();
+            sql += entry.getKey()+"=?";
 
         }
         sql += " WHERE user_id = ?";
@@ -85,7 +91,17 @@ public class UserDao {
           }
             return false;
     }
-
+public void updateLogin(String userId, String newEmail) {
+    String sql = "UPDATE users_access SET login = ? WHERE user_id = ?";
+    try (PreparedStatement prep = dbService.getConnection().prepareStatement(sql)) {
+        prep.setString(1, newEmail);
+        prep.setString(2, userId);
+        prep.execute();
+        dbService.getConnection().commit();
+    } catch (Exception ex) {
+        logger.log(Level.WARNING, "UserDao::updateLoginInUsersAccess {0}", ex.getMessage());
+    }
+}
 
 public User getUserById(String id) {
         UUID uuid;
@@ -133,7 +149,8 @@ public User getUserById(String id) {
         user.setCity(userModel.getCity());
         user.setDeleteMoment(userModel.getDeleteMoment());
 
-        String sql = "INSERT INTO users (user_id, name, login, email, phone, reg_date, age, balance, city, delete_moment)"
+        String sql = "INSERT INTO users (user_id, name, login, email, "
+                + "phone, reg_date, age, balance, city, delete_moment)"
                 + " VALUES(?,?,?,?,?,?,?,?,?,?)";
         try (PreparedStatement prep = this.connection.prepareStatement(sql)) {
             prep.setString(1, user.getUserId().toString());
@@ -216,14 +233,20 @@ public User getUserById(String id) {
     }
 
     public CompletableFuture deleteAsync(User user) {
+        return CompletableFuture.runAsync(()->{
+     
+       try (Connection connection = dbService.getConnection()) {
+            connection.setAutoCommit(false);   
         String sql = String.format(
-                "UPDATE users SET delete_moment = CURRENT_TIMESTAMP,"
-                + " name='', email='', phone=NULL WHERE user_id='%s'",
+          "UPDATE users SET delete_moment = CURRENT_TIMESTAMP,"
+                + " name='', email='', phone=NULL, city='',"
+                       + " age=NULL, balance=0.00, login=UUID() "                 
+                 + " WHERE user_id='%s'",
                 user.getUserId().toString());
         String sql2 = String.format(
-                "UPDATE users_access SET ua_delete_dt = CURRENT_TIMESTAMP,"
+            "UPDATE users_access SET ua_delete_dt = CURRENT_TIMESTAMP,"
                 + " login=UUID() WHERE user_id='%s'",
-                user.getUserId().toString());
+               user.getUserId().toString());
         CompletableFuture task1 = CompletableFuture.runAsync(() -> {
             try (Statement stmt = dbService.getConnection().createStatement()) {
                 stmt.executeUpdate(sql);
@@ -235,6 +258,7 @@ public User getUserById(String id) {
         });
 
         CompletableFuture task2 = CompletableFuture.runAsync(() -> {
+          
             try (Statement stmt = dbService.getConnection().createStatement()) {
                 stmt.executeUpdate(sql2);
             } catch (SQLException ex) {
@@ -243,18 +267,25 @@ public User getUserById(String id) {
                         catch(SQLException ignore){}  //если запрос не прошел отменяет транзакцию                        
             }
         });
-        return CompletableFuture.allOf(task1, task2)
-                .thenRun(()->{
-                    try{ dbService.getConnection().commit();}
-                        catch(SQLException ignore){}
-                            });
+             CompletableFuture.allOf(task1, task2).thenRun(() -> {
+                try {
+                    connection.commit();
+                } catch (SQLException ignore) {
+                }
+            });
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error in deleteAsync", e);
+        }
+    });
+}
 //     try{
 //          task1.get();//await task1
 //          task2.get(); //await task2
 //    }
 //          catch(ExecutionException | InterruptedException ignore){}
-//                         
-    }
+//  
+       
 
     public boolean installTables() {
         Future<Boolean> task1 = CompletableFuture.supplyAsync(this::installUserAccess);
