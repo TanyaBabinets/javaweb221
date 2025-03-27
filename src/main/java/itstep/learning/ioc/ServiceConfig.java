@@ -25,15 +25,20 @@ public class ServiceConfig extends AbstractModule {
 
     @Override
     protected void configure() {
-        //    bind(RandomService.class).to(UtilRandomService.class);
+          //  bind(RandomService.class).to(UtilRandomService.class);
         bind(DateTimeService.class).toInstance(new DateTimeService());
-        bind(KdfService.class).to(PbKdf1Service.class);
+       bind(KdfService.class).to(PbKdf1Service.class);
         bind(HashService.class).to(MD5HashService.class);
-        bind(RandomService.class).to(UtilRandomService.class);
+       bind(RandomService.class).to(UtilRandomService.class);
         bind(DbService.class).to(MySqlDbService.class);
         bind(ConfigService.class).to(JsonConfigService.class);
         bind( FormParseService.class ).to( MixedFormParseService.class );
         bind( StorageService.class ).to( DiskStorageService.class );
+        bind(ConfigService.class).to(JsonConfigService.class);
+     //   bind(JwtService.class).to(JwtService.class);  как правильнее??????????
+   //    bind(JwtService.class).toInstance(new JwtService(getProvider(ConfigService.class).get()));
+        // toInstance создает jwt вручную, а не динамически через inject и получает обьект configservice 
+        
         //ця інструкція аналогічна AddSingleton<IRandomService, UtilRandomService>() 
     }
 

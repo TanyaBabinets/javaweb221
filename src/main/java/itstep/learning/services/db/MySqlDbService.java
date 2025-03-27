@@ -1,6 +1,7 @@
 
 package itstep.learning.services.db;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import itstep.learning.services.config.JsonConfigService;
@@ -16,6 +17,8 @@ public class MySqlDbService implements DbService{
     private static final Logger logger = Logger.getLogger(MySqlDbService.class.getName());
     private final JsonConfigService configService;
 private Connection connection;
+
+@Inject
 public MySqlDbService(JsonConfigService configService) {
         this.configService = configService;
     }

@@ -6,10 +6,7 @@ package itstep.learning.models;
 
 import itstep.learning.dal.dto.User;
 
-/**
- *
- * @author User
- */
+
 public class UserAuthJwtModel {
      private User user;
      private String jwtToken;

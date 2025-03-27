@@ -1,6 +1,7 @@
 package itstep.learning.filters;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import itstep.learning.dal.dao.DataContext;
@@ -75,8 +76,18 @@ public class AuthJwtFilter implements Filter {
             req.setAttribute("authStatus", "Token Signature Error");
             return;
         }
+         JsonObject payloadJson = new Gson().fromJson(payload, JsonObject.class);
         payload = new String(Base64.getUrlDecoder().decode(payload));
         UserAccess userAccess = new Gson().fromJson(payload, UserAccess.class);
+        
+        //Проверка срока токена
+          long exp = payloadJson.get("exp").getAsLong(); 
+    if (exp * 1000 < System.currentTimeMillis()) { 
+        req.setAttribute("authStatus", "Token expired");
+        return;
+    }
+        
+        
         req.setAttribute("authStatus", "OK");
         req.setAttribute("authUserAccess", userAccess);
     }

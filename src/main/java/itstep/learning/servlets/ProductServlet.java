@@ -43,7 +43,7 @@ public class ProductServlet extends HttpServlet {
         String description = formParseResult.getFields().get("description");
         String code = formParseResult.getFields().get("code");
         String stock = formParseResult.getFields().get("stock");
-        String categoryId = formParseResult.getFields().get("category");
+        String categoryId = formParseResult.getFields().get("categoryId");
     }
 
     @Override

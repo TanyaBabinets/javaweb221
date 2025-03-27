@@ -1,5 +1,6 @@
 package itstep.learning.servlets;
 
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import itstep.learning.dal.dao.DataContext;
@@ -7,8 +8,8 @@ import itstep.learning.dal.dto.AccessToken;
 import itstep.learning.dal.dto.User;
 import itstep.learning.dal.dto.UserAccess;
 import itstep.learning.models.UserAuthJwtModel;
-import itstep.learning.models.UserSignUpFormModel;
 import itstep.learning.rest.RestResponse;
+import itstep.learning.services.config.ConfigService;
 import itstep.learning.services.db.RestService;
 import itstep.learning.services.hash.HashService;
 
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
@@ -27,17 +29,19 @@ import java.util.logging.Logger;
 @Singleton
 public class UserServlet extends HttpServlet {
 
-    private final DataContext datacontext;
+    private final DataContext datacontext; 
     private final RestService restService;
     private final Logger logger;
     private final HashService hashService;
+private final ConfigService configService;
 
     @Inject
-    public UserServlet(itstep.learning.dal.dao.DataContext datacontext, Logger logger, HashService hashService, itstep.learning.services.db.RestService restService) {
+    public UserServlet(DataContext datacontext, RestService restService, Logger logger, HashService hashService, ConfigService configService) {
         this.datacontext = datacontext;
         this.restService = restService;
         this.logger = logger;
         this.hashService = hashService;
+        this.configService = configService;
     }
 
     @Override
@@ -93,23 +97,45 @@ public class UserServlet extends HttpServlet {
             return;
         }
 //создаем токен для пользователя
+//ПОЛУчить секретный ключ из конфигурации
+String secret=configService.getValue("jwt.secret").getAsString();
+
         AccessToken token = datacontext.getAccessTokenDao().create(userAccess);
         User user = datacontext.getUserDao().getUserById(userAccess.getUserId());
+//28.02 2;00
 
+long now=System.currentTimeMillis()/1000;//time in sec
+long expAt=now + (configService.getValue("token.lifetime").getAsInt());//srok deystviua
         String jwtHeader = new String(Base64.getUrlEncoder().encode(
                 "{\"alg\": \"HS256\", \"typ\": \"JWT\" }".getBytes()));
-        String jwtPayload = new String(Base64.getUrlEncoder().encode(
-                restService.gson.toJson(userAccess).getBytes()));
-        String jwtSignature = new String(Base64.getUrlEncoder().encode(
-                hashService.digest("the secret" + jwtHeader + "." + jwtPayload).getBytes()));
-        String jwtToken = jwtHeader + "." + jwtPayload + "." + jwtSignature;
+   //     String jwtPayload=restService.gson.toJson(userAccess);
+       JsonObject payloadJson=restService.gson.toJsonTree(userAccess).getAsJsonObject();//Tree чтоб добавить новое свойство expAt
+       payloadJson.addProperty("exp", expAt);//получаем все данные юзера из обьекта
+       // Добавляем iat (время создания) и exp (время истечения) в payload
+payloadJson.addProperty("iat", now);
+payloadJson.addProperty("exp", expAt);
+       
+      //  jwtPayload = new String(Base64.getUrlEncoder().encode(        
+                // restService.gson.toJson(userAccess).getBytes()));
+                String jwtPayload = Base64.getUrlEncoder().withoutPadding().encodeToString(
+                restService.gson.toJson(payloadJson).getBytes(StandardCharsets.UTF_8));
+        
+       
+                String jwtSignature = new String(Base64.getUrlEncoder().encode(
+    hashService.digest(secret + jwtHeader + "." + jwtPayload).getBytes()));
+                
+                
+                String jwtToken = jwtHeader + "." + jwtPayload + "." + jwtSignature;
 
-        restResponse.setStatus(200)
-                //.setData(new UserAuthViewModel (user, userAccess, token) списать сюда////2:15 28.02 списать
-                .setData(new UserAuthJwtModel(user, jwtToken))
-                .setCacheTime(600);
-
-        restService.sendResponse(resp, restResponse);
+  
+     
+       restResponse
+                .setStatus( 200 )
+                .setData( 
+                        new UserAuthJwtModel( user, jwtToken )
+                )
+                .setCacheTime( 600 );
+        restService.sendResponse( resp, restResponse );
     }
 
     @Override

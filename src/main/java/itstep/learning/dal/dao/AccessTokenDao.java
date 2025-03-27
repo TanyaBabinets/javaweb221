@@ -5,6 +5,7 @@ import com.google.inject.Singleton;
 import itstep.learning.dal.dto.AccessToken;
 import itstep.learning.dal.dto.UserAccess;
 
+
 import itstep.learning.services.db.DbService;
 import itstep.learning.services.config.ConfigService;
 
@@ -25,7 +26,7 @@ public class AccessTokenDao {
     private final DbService dbService;
     private final Logger logger;
     private final ConfigService configService;
-    
+  
     private int tokenLifetime;
             
 
@@ -33,8 +34,9 @@ public class AccessTokenDao {
     public AccessTokenDao( DbService dbService, Logger logger, ConfigService configService) throws SQLException {
         this.dbService = dbService;
         this.logger    = logger;
-        this.tokenLifetime = 0; 
+        this.tokenLifetime = configService.getValue("token.lifetime").getAsInt() * 1000; 
         this.configService = configService;
+       
     }
     
     public AccessToken create( UserAccess userAccess ) {
@@ -50,6 +52,8 @@ public class AccessTokenDao {
         token.setIssuedAt( date ); 
         token.setExpiresAt( new Date( date.getTime() + tokenLifetime ) ) ;
         
+   
+         
         String sql = "INSERT INTO access_tokens(access_token_id, user_access_id, "
                 + "issued_at, expires_at) VALUES(?,?,?,?)" ;
         try( PreparedStatement prep = dbService.getConnection().prepareStatement( sql ) ) {
@@ -70,6 +74,8 @@ public class AccessTokenDao {
         }
         return token;
     }
+
+   
     
     public UserAccess getUserAccess( String bearerCredentials ) {
         UUID accessTokenId;
@@ -87,6 +93,8 @@ public class AccessTokenDao {
             ResultSet rs = statement.executeQuery( sql ) ;
             if( rs.next() ) {
                 return UserAccess.fromResultSet( rs ) ;
+            }else{
+            logger.warning("Token has expired/invalid: " + accessTokenId);
             }
         }
         catch( SQLException ex ) {

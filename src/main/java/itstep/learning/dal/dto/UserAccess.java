@@ -88,4 +88,8 @@ public class UserAccess {
                 timestamp == null ? null : new Date( timestamp.getTime() ) ) ;
         return ua;
     }
+
+    public void put(String iat, long now) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }
