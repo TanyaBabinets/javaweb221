@@ -73,6 +73,10 @@ public class Category {
     public void setDeleteMoment(Date deleteMoment) {
         this.deleteMoment = deleteMoment;
     }
+
+    public Iterable<Product> getProducts() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
     
     
 }

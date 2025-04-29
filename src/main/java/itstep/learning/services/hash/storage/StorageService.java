@@ -8,5 +8,8 @@ import java.io.InputStream;
 public interface StorageService {
     String put(InputStream inputStream, String ext) throws IOException; //возвращает ID & name he choose//ext =расширение файла
     InputStream get(String itemId)throws IOException; //даем ID - получаем stream
+
+    boolean delete(String imageId);
     
+      
 }

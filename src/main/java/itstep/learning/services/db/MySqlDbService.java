@@ -59,5 +59,14 @@ public MySqlDbService(JsonConfigService configService) {
         
         return connection;
     }
+      public void closeConnection() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Error while closing connection", ex);
+        }
+    }
     
 }

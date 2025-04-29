@@ -25,6 +25,7 @@ public class AuthFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         this.filterConfig = filterConfig;
+        System.out.println("CharsetFilter initialized");
     }
 @Inject
     public AuthFilter(DataContext datacontext) {
@@ -61,7 +62,7 @@ public class AuthFilter implements Filter {
                 }
             }
         }
-
+ System.out.println("CharsetFilter processing request");
         req.setAttribute("authStatus", authStatus);
         next.doFilter(req, resp);
     }
@@ -69,5 +70,6 @@ public class AuthFilter implements Filter {
     @Override
     public void destroy() {
         this.filterConfig = null;
+        System.out.println("CharsetFilter destroyed");
     }
 }

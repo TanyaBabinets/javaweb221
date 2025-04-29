@@ -4,7 +4,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import itstep.learning.dal.dto.Product;
 import itstep.learning.services.db.DbService;
+import itstep.learning.services.hash.storage.StorageService;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -15,15 +17,46 @@ import java.util.logging.Logger;
 @Singleton
 public class ProductDao { 
     private final DbService dbService;
-    private final Logger logger;    
+    private final Logger logger;
+private final DataContext datacontext;   
+private final StorageService storageService;
 
     @Inject
-    public ProductDao( DbService dbService, Logger logger ) throws SQLException {
+    public ProductDao( DbService dbService, Logger logger, DataContext datacontext, StorageService storageService ) throws SQLException {
         this.dbService = dbService;
         this.logger    = logger;
+        this.datacontext = datacontext;
+         this.storageService = storageService; 
+    }
+       public Product getProductById( UUID productId ) {
+        String sql = "SELECT * FROM products p WHERE p.product_id = ?";
+        try( PreparedStatement prep = dbService.getConnection().prepareStatement(sql) ) {
+            prep.setString( 1, productId.toString() );
+            ResultSet rs = prep.executeQuery();
+            if( rs.next() ) {               
+                return Product.fromResultSet( rs );
+            }
+        }
+        catch( SQLException ex ) {
+            logger.log( 
+                    Level.WARNING, 
+                    "ProductDao::getProductById {0} sql: {1}",
+                    new Object[] { ex.getMessage(), sql } 
+            );
+        }
+        return null;
     }
     
-    public Product addNewProduct( Product product ) {
+    //добавить параметр imageId
+    public Product addNewProduct( Product product) {
+        String imageId = product.getProductImageId();
+       if(datacontext.getProductDao().existsSlug(product.getProductSlug())){
+       if(imageId!=null){
+       storageService.delete(imageId);
+       }
+        return null;
+    }
+        
         product.setProductId( UUID.randomUUID() );
         String sql = "INSERT INTO products(product_id, category_id, product_title,"
                 + "product_description, product_slug, product_image_id,"
@@ -53,7 +86,40 @@ public class ProductDao {
             return null;
         }
     }
-    
+//catch (SQLException ex) {
+//    try {
+//        dbService.getConnection().rollback(); 
+//    } catch (SQLException e) {
+//        logger.warning("Rollback failed: " + e.getMessage());
+//    }
+//
+//    logger.log(
+//        Level.WARNING,
+//        "ProductDao::addNewProduct {0} sql: '{1}'",
+//        new Object[] { ex.getMessage(), sql }
+//    );
+//    return null;
+//}
+//    }
+public boolean existsSlug(String slug) {
+    String sql = "SELECT COUNT(*) FROM products WHERE product_slug = ?";
+    try (PreparedStatement stmt = dbService.getConnection().prepareStatement(sql)) {
+        stmt.setString(1, slug);
+        ResultSet resultSet = stmt.executeQuery();
+        if (resultSet.next()) {
+           // return resultSet.getInt(1) > 0;  //  слаг существует
+            boolean exists = resultSet.getInt(1) > 0;  
+            if (exists) {
+                System.out.println("Такой код (slug) уже существует: " + slug);
+            }
+            return exists;
+        }
+    } catch (SQLException e) {
+        logger.log(Level.WARNING, "Error checking for existing slug", e);
+    }
+    return false;
+}   
+
     public boolean installTables() {
         String sql = "CREATE TABLE IF NOT EXISTS products ("
                 + "product_id            CHAR(36)      PRIMARY KEY DEFAULT( UUID() ),"

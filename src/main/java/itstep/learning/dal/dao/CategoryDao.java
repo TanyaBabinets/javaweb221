@@ -3,8 +3,8 @@ package itstep.learning.dal.dao;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import itstep.learning.dal.dto.Category;
-import itstep.learning.services.config.ConfigService;
 import itstep.learning.services.db.DbService;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -42,20 +42,21 @@ public class CategoryDao {
         }
         return res;
     }
-    
-    public boolean seedData() {
+    //select UUID();//команда в sql
+    public boolean seedData() throws SQLException {
         String sql = "INSERT INTO categories VALUES"
                 + "('14780dcf-fb75-11ef-90a1-62517600596c', 'Вироби зі скла', 'Декоративні вироби зі скла, а також скляний посуд', 'glass', 'glass.jpg', NULL )," 
                 + "('24780dcf-fb75-11ef-90a1-62517600596c', 'Офісні товари', 'Настільні сувеніри', 'office', 'office.jpg', NULL )," 
                 + "('34780dcf-fb75-11ef-90a1-62517600596c', 'Вироби з каменю', 'Декоративні вироби зі каменю, а також камяний посуд', 'stone', 'stone.jpg', NULL )," 
                 + "('44780dcf-fb75-11ef-90a1-62517600596c', 'Вироби з дерева', 'Декоративні вироби з дерева, а також дерев''яний посуд', 'wood', 'wood.jpg', NULL )";
-        try( Statement statement = dbService.getConnection().createStatement() ) {
+       
+  try( Statement statement = dbService.getConnection().createStatement() ) {
             statement.executeUpdate( sql ) ;
             dbService.getConnection().commit() ;
             logger.info( "CategoryDao::seedData OK" );
             return true;
         }
-        catch( SQLException ex ) {
+  catch( SQLException ex ) {
             logger.log( 
                     Level.WARNING, 
                     "CategoryDao::seedData {0} sql: '{1}'",
@@ -66,6 +67,7 @@ public class CategoryDao {
     }
     
     public boolean installTables() {
+       
         String sql = "CREATE TABLE IF NOT EXISTS categories ("
                 + "category_id            CHAR(36)      PRIMARY KEY DEFAULT( UUID() ),"
                 + "category_title         VARCHAR(64)   NOT NULL,"
@@ -77,9 +79,11 @@ public class CategoryDao {
                 + ") Engine = InnoDB, DEFAULT CHARSET = utf8mb4";
         
         try( Statement statement = dbService.getConnection().createStatement() ) {
+               System.out.println("Выполняем SQL: " + sql); // Проверяем SQL-запрос
             statement.executeUpdate( sql ) ;
             dbService.getConnection().commit() ;
             logger.info( "CategoryDao::installTables OK" );
+
             return true;
         }
         catch( SQLException ex ) {
@@ -90,5 +94,9 @@ public class CategoryDao {
             );
         }
         return false;
+    }
+
+    public Category getCategoryBySlug(String slug) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
